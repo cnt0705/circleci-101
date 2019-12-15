@@ -1,36 +1,22 @@
 version: 2
+
 jobs:
-  one:
+  build:
     docker:
-      - image: circleci/ruby:2.4.1
+      - image: circleci/ruby:2.4-node
     steps:
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
       - checkout
-      - run: echo "A first hello"
-      - run: mkdir -p my_workspace
-      - run: echo "Trying out workspaces" > my_workspace/echo-output
-      - persist_to_workspace:
-          root: my_workspace
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
           paths:
-            - echo-output
-  two:
-    docker:
-      - image: circleci/ruby:2.4.1
-    steps:
-      - checkout
-      - run: echo "A more familiar hi"
-      - attach_workspace:
-          at: my_workspace
-      - run: |
-          if [[ $(cat my_workspace/echo-output) == "Trying out workspaces" ]]; then
-            echo "It worked!";
-          else
-            echo "Nope!"; exit 1
-          fi
+            - ".git"
 workflows:
   version: 2
-  one_and_two:
+  build:
     jobs:
-      - one
-      - two:
-          requires:
-            - one
+      - build
